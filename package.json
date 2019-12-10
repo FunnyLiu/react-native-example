@@ -1,0 +1,23 @@
+{
+  "name": "react-native-example",
+  "version": "1.0.0",
+  "description": "some examples for react-native",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FunnyLiu/react-native-example.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FunnyLiu/react-native-example/issues"
+  },
+  "homepage": "https://github.com/FunnyLiu/react-native-example#readme",
+  "devDependencies": {
+    "lerna": "^3.19.0"
+  }
+}
