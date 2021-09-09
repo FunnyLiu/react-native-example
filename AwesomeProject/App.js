@@ -62,6 +62,7 @@ const App: () => Node = () => {
 
   return (
     <SafeAreaView style={backgroundStyle}>
+      <Text>hello world</Text>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <MySectionList />
       <ScrollView
