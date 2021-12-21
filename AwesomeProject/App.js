@@ -17,6 +17,8 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import MyCustomAnimate from './components/MyCustomAnimate';
+import MyListAnimate from './components/MyListAnimate';
 
 import MySectionList from './components/MySectionList';
 
@@ -50,14 +52,16 @@ const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
-    backgroundColor: isDarkMode ? '#fff' : '#000',
+    backgroundColor: isDarkMode ? '#fff' : '#fff',
   };
 
   return (
     <SafeAreaView style={backgroundStyle}>
-      <Text>hello world</Text>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <MySectionList />
+      {/* <Text>hello world</Text> */}
+      {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
+      {/* <MySectionList /> */}
+      {/* <MyListAnimate /> */}
+      <MyCustomAnimate />
     </SafeAreaView>
   );
 };
