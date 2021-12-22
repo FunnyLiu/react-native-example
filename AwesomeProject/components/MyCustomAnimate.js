@@ -25,8 +25,8 @@ const Item = ({
   nextNode,
   curNode,
 }) => {
-  const {type, preHeight} = item;
-
+  const {type} = item;
+  const preHeight = (preNode || {}).height || 0;
   const opacityAnimate = useRef(new Animated.Value(1)).current;
   const translateAnimate = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -37,7 +37,7 @@ const Item = ({
         duration: 1000,
         useNativeDriver: true,
       }).start(() => {
-        onLastOneUp(preHeight);
+        onLastOneUp();
       });
     }
   }, [item]);
@@ -87,7 +87,7 @@ const Item = ({
               duration: 1000,
               useNativeDriver: true,
             }).start(() => {
-              onRemoveLastOne(curNode.height);
+              onRemoveLastOne();
             });
           }}>
           <Text
@@ -388,26 +388,14 @@ const MyCustomAnimate = () => {
       },
     ]);
   };
-  // 最后一个消失
-  const lastOneNone = () => {
-    // 先动画将最后一个透明度降低
-    setData([
-      ...data.slice(0, -1),
-      {
-        title: 'four Item',
-        type: 'b',
-      },
-    ]);
-  };
   // 最后一个移除完毕后
   // 最后一个的高度拿到了
-  const onRemoveLastOne = height => {
+  const onRemoveLastOne = () => {
     // 删除前，先将另一个补位上去
     setData([
       ...data,
       {
         type: 'a',
-        preHeight: height,
         title: '对话后一个的前身',
       },
     ]);
@@ -421,13 +409,12 @@ const MyCustomAnimate = () => {
     // ]);
   };
   // 最后一个组件上来之后
-  const onLastOneUp = preHeight => {
+  const onLastOneUp = () => {
     setData([
       ...data.slice(0, -2),
       {
         title: '对话后一个的后身',
         type: 'b',
-        preHeight: preHeight,
       },
     ]);
   };
