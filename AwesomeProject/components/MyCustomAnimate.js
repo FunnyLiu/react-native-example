@@ -22,12 +22,9 @@ const Item = ({
   onLastOneUp = () => {},
   onLayout = () => {},
   preNode,
-  nextNode,
-  curNode,
 }) => {
   const {type} = item;
   const preHeight = (preNode || {}).height || 0;
-  const curHeight = (curNode || {}).height || 0;
   const opacityAnimate = useRef(new Animated.Value(1)).current;
   const translateAnimate = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -45,10 +42,7 @@ const Item = ({
   // a类型的组件通过动画上移，然后变为b类型组件
   if (type === 'a') {
     return (
-      <Animated.View
-        // 上升的情况不要触发layout
-        // onLayout={onLayout}
-        style={{transform: [{translateY: translateAnimate}]}}>
+      <Animated.View style={{transform: [{translateY: translateAnimate}]}}>
         <TouchableOpacity onPress={onPress}>
           <Text
             style={{
@@ -70,7 +64,6 @@ const Item = ({
           style={{
             height: 100,
             width: 300,
-            // marginBottom: preHeight ? 50 + preHeight - curHeight : 50,
             marginBottom: 50,
             backgroundColor: 'red',
           }}>
@@ -107,18 +100,11 @@ const Item = ({
     );
   }
 };
-const renderItem = ({item}) => {
-  return <Item item={item} onPress={() => {}} />;
-};
 
 // 利用scrollView的api定位到底部动画
 const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   const listTransformAnimate = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef();
-  const [myTrans, setMyTrans] = useState(0);
-
-  const [listPadding, setListPadding] = useState(0);
-
   // 如果触发的新增节点的逻辑后
   useEffect(() => {
     if (!translateY) {
@@ -128,26 +114,6 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
     // setListPadding(0);
     // setTimeout(() => {
     scrollViewRef.current.scrollToEnd({animated: true, duration: 5000});
-    // scrollViewRef.current.scrollTo({y: 200,duration: 8000});
-    // }, 200);
-    // Animated.timing(listTransformAnimate, {
-    //   toValue: translateY,
-    //   duration: 1000,
-    //   useNativeDriver: true,
-    // }).start();
-
-    // Animated.sequence([
-    //   Animated.timing(listTransformAnimate, {
-    //     toValue: translateY,
-    //     duration: 1000,
-    //     useNativeDriver: true,
-    //   }),
-    //   Animated.timing(listTransformAnimate, {
-    //     toValue: 0,
-    //     duration: 1000,
-    //     useNativeDriver: true,
-    //   }),
-    // ]).start();
   }, [translateY, listTransformAnimate]);
   const [nodeInfo, setNodeInfo] = useState([]);
   const [height, setHeight] = useState(0); // 用来存放当前高度
@@ -155,11 +121,6 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
 
   const onLastOneUpParams = () => {
     onLastOneUp();
-    //改版padding合适的值，制造假象
-    // console.log(nodeInfo[nodeInfo.length - 1].height);
-    // setListPadding(nodeInfo[nodeInfo.length - 1].height);
-    // 使用padding的方案
-    // setListPadding(100);
     console.log('up');
     //设置高度
     setListHeight(height);
@@ -186,47 +147,23 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
       <Animated.ScrollView
         ref={scrollViewRef}
         style={{
-          // position: 'absolute',
-          // position: 'relative',
-          // top: 500,
-          // bottom: listBottomAnimate,
           backgroundColor: 'green',
-          // transform: [{translateY: listTransformAnimate}],
         }}>
         <View
           style={{
-            // height: 700,
             height: '100%',
-            // position: 'absolute',
-            // top: 0,
-            // bottom: 0,
-            // left:0,
-            // right:0,
             backgroundColor: 'yellow',
-            // position:'absolute',
           }}>
           <Text>container</Text>
           <Animated.View
             onLayout={onViewLayout}
             style={{
               paddingTop: 500,
-              height: listHeight?listHeight:'auto',
+              height: listHeight ? listHeight : 'auto',
               backgroundColor: 'blue',
-              //   position: 'relative',
-              // top:-300,
-              // marginBottom: listPadding,
-              // paddingBottom: listPadding,
               transform: [{translateY: listTransformAnimate}],
             }}>
-            <View
-              style={
-                {
-                  // position:'absolute',
-                  // height:' 100%',
-                  // bottom: 0,
-                  // backgroundColor:'red',
-                }
-              }>
+            <View style={{}}>
               {list.map((item, index) => (
                 <Item
                   key={index}
@@ -286,42 +223,21 @@ const MyCustomAnimate = () => {
         title: '对话后一个的前身',
       },
     ]);
-    // 删除最后一个
-    // setData([
-    //   ...data.slice(0, -1),
-    // {
-    //   title: 'four Item',
-    //   type: 'b',
-    // },
-    // ]);
   };
   // 最后一个组件上来之后
   const onLastOneUp = () => {
-    // let newArr = [...data];
-    // newArr.splice(-2, 1);
-    // setData(newArr);
-    // setData([
-    //   ...data.slice(0, -2),
-    //   {
-    //     title: '对话后一个的后身',
-    //     type: 'b',
-    //   },
-    // ]);
-
     setData([...data.slice(0, -2), {...data[data.length - 1], type: 'b'}]);
   };
 
   return (
     <View style={{height: '100%'}}>
       <Text>mylist animate</Text>
-      {/* <MyList /> */}
       <MyList2
         list={data}
         translateY={translateY}
         onRemoveLastOne={onRemoveLastOne}
         onLastOneUp={onLastOneUp}
       />
-      {/* <MyList3 list={data} height={height} /> */}
       <TouchableOpacity
         onPress={() => {
           appendToList2();
