@@ -27,6 +27,7 @@ const Item = ({
 }) => {
   const {type} = item;
   const preHeight = (preNode || {}).height || 0;
+  const curHeight = (curNode || {}).height || 0;
   const opacityAnimate = useRef(new Animated.Value(1)).current;
   const translateAnimate = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -45,7 +46,8 @@ const Item = ({
   if (type === 'a') {
     return (
       <Animated.View
-        onLayout={onLayout}
+        // 上升的情况不要触发layout
+        // onLayout={onLayout}
         style={{transform: [{translateY: translateAnimate}]}}>
         <TouchableOpacity onPress={onPress}>
           <Text
@@ -68,7 +70,7 @@ const Item = ({
           style={{
             height: 100,
             width: 300,
-            marginBottom: 50 + preHeight ? preHeight : 0,
+            marginBottom: 50,
             backgroundColor: 'red',
           }}>
           {item.title}
@@ -83,7 +85,7 @@ const Item = ({
         <TouchableOpacity
           onPress={() => {
             Animated.timing(opacityAnimate, {
-              toValue: 0,
+              toValue: 1,
               duration: 1000,
               useNativeDriver: true,
             }).start(() => {
@@ -108,77 +110,6 @@ const renderItem = ({item}) => {
   return <Item item={item} onPress={() => {}} />;
 };
 
-const MyList = () => {
-  const bottomAnimate = useRef(new Animated.Value(100)).current;
-  const bottomAnimate2 = useRef(new Animated.Value(-200)).current;
-  const opacityAnimate = useRef(new Animated.Value(1)).current;
-  const bottomAnimate3 = useRef(new Animated.Value(-200)).current;
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(bottomAnimate, {
-        toValue: 300,
-        duration: 1000,
-      }),
-      Animated.sequence([
-        Animated.timing(bottomAnimate2, {
-          toValue: 80,
-          duration: 1500,
-        }),
-        Animated.timing(opacityAnimate, {
-          toValue: 0,
-          duration: 1000,
-        }),
-        Animated.timing(bottomAnimate3, {
-          toValue: 150,
-          duration: 1500,
-        }),
-      ]).start(() => {
-        console.log('串行动画完成');
-      }),
-    ]).start(() => {
-      console.log('平行动画完成');
-    });
-  }, []);
-  return (
-    // <ScrollView>
-    <View style={{position: 'absolute', bottom: 0}}>
-      <Animated.View style={{position: 'absolute', bottom: bottomAnimate}}>
-        <Item
-          item={{
-            title: 'Second Item',
-            type: 'b',
-          }}
-        />
-      </Animated.View>
-      <Animated.View
-        style={{
-          position: 'absolute',
-          bottom: bottomAnimate2,
-          opacity: opacityAnimate,
-        }}>
-        <Item
-          item={{
-            title: 'third Item',
-            type: 'c',
-          }}
-        />
-      </Animated.View>
-      <Animated.View
-        style={{
-          position: 'absolute',
-          bottom: bottomAnimate3,
-        }}>
-        <Item
-          item={{
-            title: '后面一个对话',
-            type: 'b',
-          }}
-        />
-      </Animated.View>
-    </View>
-    // </ScrollView>
-  );
-};
 // 利用scrollView的api定位到底部动画
 const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   const listTransformAnimate = useRef(new Animated.Value(0)).current;
@@ -213,9 +144,18 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   }, [translateY, listTransformAnimate]);
   const [nodeInfo, setNodeInfo] = useState([]);
   const onLayout = (event, item) => {
-    setNodeInfo([...nodeInfo, {...item, ...event.nativeEvent.layout}]);
+    console.log(item, 'layout');
+    // b 的情况下，需要将 nodeinfo 中前面占位的c去掉。
+    if (item.type === 'b') {
+      setNodeInfo([
+        ...nodeInfo.slice(0, -1),
+        {...item, ...event.nativeEvent.layout},
+      ]);
+    } else {
+      setNodeInfo([...nodeInfo, {...item, ...event.nativeEvent.layout}]);
+    }
   };
-  console.log(nodeInfo, 'nodeInfo');
+  console.log(nodeInfo);
   return (
     <View style={{width: '100%'}}>
       <Animated.ScrollView
@@ -282,88 +222,6 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   );
 };
 
-const MyList3 = ({list = [], height = 0}) => {
-  const heightAnimate = useRef(new Animated.Value(0)).current;
-  const scrollViewRef = useRef();
-  useEffect(() => {
-    if (!height) {
-      return;
-    }
-    // setTimeout(() => {
-    // scrollViewRef.current.scrollToEnd({animated: true, duration: 5000});
-    // scrollViewRef.current.scrollTo({y: 200,duration: 8000});
-    // }, 200);
-    Animated.timing(heightAnimate, {
-      toValue: height,
-      duration: 1000,
-      useNativeDriver: false,
-    }).start();
-
-    // Animated.sequence([
-    //   Animated.timing(listTransformAnimate, {
-    //     toValue: translateY,
-    //     duration: 1000,
-    //     useNativeDriver: true,
-    //   }),
-    //   Animated.timing(listTransformAnimate, {
-    //     toValue: 0,
-    //     duration: 1000,
-    //     useNativeDriver: true,
-    //   }),
-    // ]).start();
-  }, [height, heightAnimate]);
-  return (
-    <View style={{width: '100%'}}>
-      <Animated.ScrollView
-        ref={scrollViewRef}
-        style={{
-          // position: 'absolute',
-          // position: 'relative',
-          // top: 500,
-          // bottom: listBottomAnimate,
-          backgroundColor: 'green',
-          // transform: [{translateY: listTransformAnimate}],
-        }}>
-        <View
-          style={{
-            // height: 700,
-            height: '100%',
-            // position: 'absolute',
-            // top: 0,
-            // bottom: 0,
-            // left:0,
-            // right:0,
-            backgroundColor: 'yellow',
-            // position:'absolute',
-          }}>
-          <Text>container</Text>
-          <Animated.View
-            style={{
-              paddingTop: 700,
-              backgroundColor: 'blue',
-              position: 'relative',
-              top: -800,
-              height: heightAnimate,
-            }}>
-            <View
-              style={
-                {
-                  // position:'absolute',
-                  // height:' 100%',
-                  // bottom: 0,
-                  // backgroundColor:'red',
-                }
-              }>
-              {list.map((item, index) => (
-                <Item key={index} item={item} />
-              ))}
-            </View>
-          </Animated.View>
-        </View>
-      </Animated.ScrollView>
-    </View>
-  );
-};
 const MyCustomAnimate = () => {
   const [data, setData] = useState(DATA);
   const [translateY, setTranslateY] = useState(0);
@@ -372,11 +230,11 @@ const MyCustomAnimate = () => {
   const scorllListRef = useRef();
 
   const scrollToIndex = index => {
-    console.log('scroll to index called !');
     // flatlistRef.current.scrollToIndex({animated: true, index: index});
   };
   const appendToList2 = () => {
-    setTranslateY(translateY - 250);
+    // 主要改一点，也可以说明在动，就会自动聚焦到底部了。
+    setTranslateY(translateY - 1);
     // setHeight(height + 250);
     // scorllListRef.current.scrollToEnd({animated: true});
 
@@ -410,13 +268,18 @@ const MyCustomAnimate = () => {
   };
   // 最后一个组件上来之后
   const onLastOneUp = () => {
-    setData([
-      ...data.slice(0, -2),
-      {
-        title: '对话后一个的后身',
-        type: 'b',
-      },
-    ]);
+    // let newArr = [...data];
+    // newArr.splice(-2, 1);
+    // setData(newArr);
+    // setData([
+    //   ...data.slice(0, -2),
+    //   {
+    //     title: '对话后一个的后身',
+    //     type: 'b',
+    //   },
+    // ]);
+
+    setData([...data.slice(0, -2), {...data[data.length - 1], type: 'b'}]);
   };
 
   return (
