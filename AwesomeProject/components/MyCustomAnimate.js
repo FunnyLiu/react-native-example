@@ -15,26 +15,60 @@ const DATA = [
     type: 'b',
   },
 ];
-const Item = ({item, onPress}) => {
-  const {type} = item;
+const Item = ({
+  item,
+  onPress,
+  onRemoveLastOne = () => {},
+  onLastOneUp = () => {},
+  onLayout = () => {},
+  nodeInfo,
+}) => {
+  const {type, preHeight} = item;
 
+  const opacityAnimate = useRef(new Animated.Value(1)).current;
+  const translateAnimate = useRef(new Animated.Value(0)).current;
+  console.log(nodeInfo);
+  console.log(preHeight);
+  useEffect(() => {
+    // a类型的组件，就是后续新增上来需要动画过渡的组件
+    if (item.type === 'a') {
+      Animated.timing(translateAnimate, {
+        toValue: -1 * preHeight,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start(() => {
+        onLastOneUp(preHeight);
+      });
+    }
+  }, [item]);
+  // a类型的组件通过动画上移，然后变为b类型组件
   if (type === 'a') {
     return (
-      <TouchableOpacity onPress={onPress}>
-        <Text style={{height: 300, width: 300, marginBottom: 100}}>
-          {item.title}
-        </Text>
-      </TouchableOpacity>
+      <Animated.View
+        onLayout={onLayout}
+        style={{transform: [{translateY: translateAnimate}]}}>
+        <TouchableOpacity onPress={onPress}>
+          <Text
+            style={{
+              height: 100,
+              width: 300,
+              marginBottom: 50,
+              backgroundColor: 'green',
+            }}>
+            {item.title}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
   if (type === 'b') {
     return (
-      <TouchableOpacity onPress={onPress}>
+      <TouchableOpacity onLayout={onLayout} onPress={onPress}>
         <Text
           style={{
             height: 100,
             width: 300,
-            marginBottom: 50,
+            marginBottom: 50 + preHeight ? preHeight : 0,
             backgroundColor: 'red',
           }}>
           {item.title}
@@ -42,19 +76,31 @@ const Item = ({item, onPress}) => {
       </TouchableOpacity>
     );
   }
+  // c类型组件，点击后会出现透明关闭
   if (type === 'c') {
     return (
-      <TouchableOpacity onPress={onPress}>
-        <Text
-          style={{
-            height: 200,
-            width: 300,
-            marginBottom: 50,
-            backgroundColor: 'yellow',
+      <Animated.View onLayout={onLayout} style={{opacity: opacityAnimate}}>
+        <TouchableOpacity
+          onPress={() => {
+            Animated.timing(opacityAnimate, {
+              toValue: 0,
+              duration: 1000,
+              useNativeDriver: true,
+            }).start(() => {
+              onRemoveLastOne(nodeInfo[nodeInfo.length - 1].height);
+            });
           }}>
-          {item.title}
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={{
+              height: 200,
+              width: 300,
+              marginBottom: 50,
+              backgroundColor: 'yellow',
+            }}>
+            {item.title}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 };
@@ -134,12 +180,14 @@ const MyList = () => {
   );
 };
 
-const MyList2 = ({list = [], translateY = 0}) => {
+const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   const listTransformAnimate = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef();
   const [myTrans, setMyTrans] = useState(0);
   useEffect(() => {
-    if (!translateY) return;
+    if (!translateY) {
+      return;
+    }
     // setTimeout(() => {
     scrollViewRef.current.scrollToEnd({animated: true, duration: 5000});
     // scrollViewRef.current.scrollTo({y: 200,duration: 8000});
@@ -163,7 +211,11 @@ const MyList2 = ({list = [], translateY = 0}) => {
     //   }),
     // ]).start();
   }, [translateY, listTransformAnimate]);
-  console.log(list);
+  const [nodeInfo, setNodeInfo] = useState([]);
+  const onLayout = (event, item) => {
+    setNodeInfo([...nodeInfo, {...item, ...event.nativeEvent.layout}]);
+  };
+
   return (
     <View style={{width: '100%'}}>
       <Animated.ScrollView
@@ -207,7 +259,14 @@ const MyList2 = ({list = [], translateY = 0}) => {
                 }
               }>
               {list.map((item, index) => (
-                <Item key={index} item={item} />
+                <Item
+                  key={index}
+                  item={item}
+                  onRemoveLastOne={onRemoveLastOne}
+                  onLastOneUp={onLastOneUp}
+                  onLayout={event => onLayout(event, item)}
+                  nodeInfo={nodeInfo}
+                />
               ))}
             </View>
           </Animated.View>
@@ -220,9 +279,10 @@ const MyList2 = ({list = [], translateY = 0}) => {
 const MyList3 = ({list = [], height = 0}) => {
   const heightAnimate = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef();
-  console.log(height);
   useEffect(() => {
-    if (!height) return;
+    if (!height) {
+      return;
+    }
     // setTimeout(() => {
     // scrollViewRef.current.scrollToEnd({animated: true, duration: 5000});
     // scrollViewRef.current.scrollTo({y: 200,duration: 8000});
@@ -246,7 +306,6 @@ const MyList3 = ({list = [], height = 0}) => {
     //   }),
     // ]).start();
   }, [height, heightAnimate]);
-  console.log(list);
   return (
     <View style={{width: '100%'}}>
       <Animated.ScrollView
@@ -323,12 +382,60 @@ const MyCustomAnimate = () => {
       },
     ]);
   };
+  // 最后一个消失
+  const lastOneNone = () => {
+    // 先动画将最后一个透明度降低
+    setData([
+      ...data.slice(0, -1),
+      {
+        title: 'four Item',
+        type: 'b',
+      },
+    ]);
+  };
+  // 最后一个移除完毕后
+  // 最后一个的高度拿到了
+  const onRemoveLastOne = height => {
+    // 删除前，先将另一个补位上去
+    setData([
+      ...data,
+      {
+        type: 'a',
+        preHeight: height,
+        title: '对话后一个',
+      },
+    ]);
+    // 删除最后一个
+    // setData([
+    //   ...data.slice(0, -1),
+    // {
+    //   title: 'four Item',
+    //   type: 'b',
+    // },
+    // ]);
+  };
+  // 最后一个组件上来之后
+  const onLastOneUp = (preHeight) => {
+    setData([
+      ...data.slice(0, -2),
+      {
+        title: '对话后一个',
+        type: 'b',
+        preHeight:preHeight,
+      },
+    ]);
+  };
 
   return (
     <View style={{height: '100%'}}>
       <Text>mylist animate</Text>
       {/* <MyList /> */}
-      <MyList2 list={data} translateY={translateY} />
+      <MyList2
+        list={data}
+        translateY={translateY}
+        onRemoveLastOne={onRemoveLastOne}
+        onLastOneUp={onLastOneUp}
+      />
       {/* <MyList3 list={data} height={height} /> */}
       <TouchableOpacity
         onPress={() => {
@@ -339,44 +446,12 @@ const MyCustomAnimate = () => {
           position: 'absolute',
           top: 100,
           right: 10,
+          width: 200,
+          height: 100,
           backgroundColor: 'green',
           zIndex: 99,
         }}>
         <Text> 增加一个</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => {
-          // scorllListRef.current.scrollToEnd({duration: 1500});
-        }}
-        style={{
-          marginBottom: 300,
-          position: 'absolute',
-          top: 130,
-          right: 10,
-          backgroundColor: 'green',
-          zIndex: 99,
-        }}>
-        <Text>滑到最后一个</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => {
-          setData([
-            ...data.slice(0, -1),
-            {
-              title: 'four Item',
-              type: 'b',
-            },
-          ]);
-        }}
-        style={{
-          marginBottom: 300,
-          position: 'absolute',
-          top: 160,
-          right: 10,
-          backgroundColor: 'green',
-          zIndex: 99,
-        }}>
-        <Text>切换最后一个</Text>
       </TouchableOpacity>
     </View>
   );
