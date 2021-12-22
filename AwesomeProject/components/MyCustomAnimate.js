@@ -118,20 +118,14 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   const [myTrans, setMyTrans] = useState(0);
 
   const [listPadding, setListPadding] = useState(0);
-  const onLastOneUpParams = () => {
-    onLastOneUp();
-    //改版padding合适的值，制造假象
-    // console.log(nodeInfo[nodeInfo.length - 1].height);
-    // setListPadding(nodeInfo[nodeInfo.length - 1].height);
-    // 使用padding的方案
-    setListPadding(100);
-  };
+
   // 如果触发的新增节点的逻辑后
   useEffect(() => {
     if (!translateY) {
       return;
     }
-    setListPadding(0);
+    setListHeight(0);
+    // setListPadding(0);
     // setTimeout(() => {
     scrollViewRef.current.scrollToEnd({animated: true, duration: 5000});
     // scrollViewRef.current.scrollTo({y: 200,duration: 8000});
@@ -156,11 +150,22 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
     // ]).start();
   }, [translateY, listTransformAnimate]);
   const [nodeInfo, setNodeInfo] = useState([]);
-  const [bStatusHeight, setBStatusHeight] = useState(0);
+  const [height, setHeight] = useState(0); // 用来存放当前高度
+  const [listHeight, setListHeight] = useState(0); // 用来特殊情况下设置高度
+
+  const onLastOneUpParams = () => {
+    onLastOneUp();
+    //改版padding合适的值，制造假象
+    // console.log(nodeInfo[nodeInfo.length - 1].height);
+    // setListPadding(nodeInfo[nodeInfo.length - 1].height);
+    // 使用padding的方案
+    // setListPadding(100);
+    console.log('up');
+    //设置高度
+    setListHeight(height);
+  };
   const onLayout = (event, item) => {
     if (item.type === 'b') {
-      // b情况下，需要将height缓存，方便使用
-      setBStatusHeight(event.nativeEvent.layout.height);
       // b 的情况下，需要将 nodeinfo 中前面占位的c去掉。
       setNodeInfo([
         ...nodeInfo.slice(0, -1),
@@ -169,6 +174,12 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
     } else {
       setNodeInfo([...nodeInfo, {...item, ...event.nativeEvent.layout}]);
     }
+  };
+  // 容器layout变化
+  const onViewLayout = event => {
+    // console.log(event.nativeEvent.layout);
+    setHeight(event.nativeEvent.layout.height);
+    console.log(event.nativeEvent.layout.height, 'height');
   };
   return (
     <View style={{height: '100%'}}>
@@ -196,13 +207,15 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
           }}>
           <Text>container</Text>
           <Animated.View
+            onLayout={onViewLayout}
             style={{
               paddingTop: 500,
+              height: listHeight?listHeight:'auto',
               backgroundColor: 'blue',
               //   position: 'relative',
               // top:-300,
               // marginBottom: listPadding,
-              paddingBottom: listPadding,
+              // paddingBottom: listPadding,
               transform: [{translateY: listTransformAnimate}],
             }}>
             <View
