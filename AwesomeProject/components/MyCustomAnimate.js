@@ -21,14 +21,14 @@ const Item = ({
   onRemoveLastOne = () => {},
   onLastOneUp = () => {},
   onLayout = () => {},
-  nodeInfo,
+  preNode,
+  nextNode,
+  curNode,
 }) => {
   const {type, preHeight} = item;
 
   const opacityAnimate = useRef(new Animated.Value(1)).current;
   const translateAnimate = useRef(new Animated.Value(0)).current;
-  console.log(nodeInfo);
-  console.log(preHeight);
   useEffect(() => {
     // a类型的组件，就是后续新增上来需要动画过渡的组件
     if (item.type === 'a') {
@@ -87,7 +87,7 @@ const Item = ({
               duration: 1000,
               useNativeDriver: true,
             }).start(() => {
-              onRemoveLastOne(nodeInfo[nodeInfo.length - 1].height);
+              onRemoveLastOne(curNode.height);
             });
           }}>
           <Text
@@ -179,7 +179,7 @@ const MyList = () => {
     // </ScrollView>
   );
 };
-
+// 利用scrollView的api定位到底部动画
 const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   const listTransformAnimate = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef();
@@ -215,7 +215,7 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   const onLayout = (event, item) => {
     setNodeInfo([...nodeInfo, {...item, ...event.nativeEvent.layout}]);
   };
-
+  console.log(nodeInfo, 'nodeInfo');
   return (
     <View style={{width: '100%'}}>
       <Animated.ScrollView
@@ -262,10 +262,16 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
                 <Item
                   key={index}
                   item={item}
+                  preNode={index > 0 ? nodeInfo[index - 1] : undefined}
+                  nextNode={
+                    index < nodeInfo.length - 1
+                      ? nodeInfo[nodeInfo.length - 1]
+                      : undefined
+                  }
+                  curNode={nodeInfo[index]}
                   onRemoveLastOne={onRemoveLastOne}
                   onLastOneUp={onLastOneUp}
                   onLayout={event => onLayout(event, item)}
-                  nodeInfo={nodeInfo}
                 />
               ))}
             </View>
@@ -402,7 +408,7 @@ const MyCustomAnimate = () => {
       {
         type: 'a',
         preHeight: height,
-        title: '对话后一个',
+        title: '对话后一个的前身',
       },
     ]);
     // 删除最后一个
@@ -415,13 +421,13 @@ const MyCustomAnimate = () => {
     // ]);
   };
   // 最后一个组件上来之后
-  const onLastOneUp = (preHeight) => {
+  const onLastOneUp = preHeight => {
     setData([
       ...data.slice(0, -2),
       {
-        title: '对话后一个',
+        title: '对话后一个的后身',
         type: 'b',
-        preHeight:preHeight,
+        preHeight: preHeight,
       },
     ]);
   };
