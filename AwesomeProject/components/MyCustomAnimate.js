@@ -191,19 +191,10 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
 const MyCustomAnimate = () => {
   const [data, setData] = useState(DATA);
   const [translateY, setTranslateY] = useState(0);
-  const [height, setHeight] = useState(300);
-  const flatlistRef = useRef();
-  const scorllListRef = useRef();
 
-  const scrollToIndex = index => {
-    // flatlistRef.current.scrollToIndex({animated: true, index: index});
-  };
   const appendToList2 = () => {
     // 主要改一点，也可以说明在动，就会自动聚焦到底部了。
     setTranslateY(translateY - 1);
-    // setHeight(height + 250);
-    // scorllListRef.current.scrollToEnd({animated: true});
-
     setData([
       ...data,
       {
