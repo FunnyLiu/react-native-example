@@ -70,6 +70,7 @@ const Item = ({
           style={{
             height: 100,
             width: 300,
+            // marginBottom: preHeight ? 50 + preHeight - curHeight : 50,
             marginBottom: 50,
             backgroundColor: 'red',
           }}>
@@ -115,10 +116,20 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   const listTransformAnimate = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef();
   const [myTrans, setMyTrans] = useState(0);
+
+  const [listPadding, setListPadding] = useState(0);
+  const onLastOneUpParams = () => {
+    onLastOneUp();
+    //改版padding合适的值，制造假象
+    console.log(nodeInfo[nodeInfo.length - 1].height);
+    setListPadding(nodeInfo[nodeInfo.length - 1].height);
+  };
+  // 如果触发的新增节点的逻辑后
   useEffect(() => {
     if (!translateY) {
       return;
     }
+    setListPadding(0);
     // setTimeout(() => {
     scrollViewRef.current.scrollToEnd({animated: true, duration: 5000});
     // scrollViewRef.current.scrollTo({y: 200,duration: 8000});
@@ -144,7 +155,6 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
   }, [translateY, listTransformAnimate]);
   const [nodeInfo, setNodeInfo] = useState([]);
   const onLayout = (event, item) => {
-    console.log(item, 'layout');
     // b 的情况下，需要将 nodeinfo 中前面占位的c去掉。
     if (item.type === 'b') {
       setNodeInfo([
@@ -155,7 +165,6 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
       setNodeInfo([...nodeInfo, {...item, ...event.nativeEvent.layout}]);
     }
   };
-  console.log(nodeInfo);
   return (
     <View style={{width: '100%'}}>
       <Animated.ScrollView
@@ -183,10 +192,11 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
           <Text>container</Text>
           <Animated.View
             style={{
-              paddingTop: 700,
+              paddingTop: 500,
               backgroundColor: 'blue',
               //   position: 'relative',
               // top:-300,
+              paddingBottom: listPadding,
               transform: [{translateY: listTransformAnimate}],
             }}>
             <View
@@ -210,7 +220,7 @@ const MyList2 = ({list = [], translateY = 0, onRemoveLastOne, onLastOneUp}) => {
                   }
                   curNode={nodeInfo[index]}
                   onRemoveLastOne={onRemoveLastOne}
-                  onLastOneUp={onLastOneUp}
+                  onLastOneUp={onLastOneUpParams}
                   onLayout={event => onLayout(event, item)}
                 />
               ))}
