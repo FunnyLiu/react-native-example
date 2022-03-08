@@ -21,6 +21,9 @@ import MyCustomAnimate from './components/MyCustomAnimate';
 import MyListAnimate from './components/MyListAnimate';
 
 import MySectionList from './components/MySectionList';
+import GestureJudge from './components/GestureJudge';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import MySnap from './components/Snap';
 
 const Section = ({children, title}) => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -61,7 +64,9 @@ const App = () => {
       {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
       {/* <MySectionList /> */}
       {/* <MyListAnimate /> */}
-      <MyCustomAnimate />
+      {/* <MyCustomAnimate /> */}
+        {/* <GestureJudge /> */}
+        <MySnap />
     </SafeAreaView>
   );
 };
