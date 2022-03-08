@@ -2,7 +2,9 @@
 
 ## AwesomeProject
 
-一些组件的demo，比如长列表
+一些组件的demo，比如长列表；手势
+
+
 
 ## react-native-call-native-module-sample
 
