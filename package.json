@@ -18,6 +18,6 @@
   },
   "homepage": "https://github.com/FunnyLiu/react-native-example#readme",
   "devDependencies": {
-    "lerna": "^3.19.0"
+    "lerna": "^6.4.1"
   }
 }
